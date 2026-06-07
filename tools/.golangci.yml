@@ -1,0 +1,78 @@
+version: "2"
+
+linters:
+  default: fast
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - cyclop
+    - dupl
+    - exptostd
+    - funlen
+    - goconst
+    - godoclint
+    - gosec
+    - gosmopolitan
+    - importas
+    - interfacebloat
+    - ireturn
+    - modernize
+    - nakedret
+    - nestif
+    - noctx
+    - prealloc
+    - predeclared
+    - sloglint
+    - tagalign
+    - unconvert
+    - unparam
+    - whitespace
+    - wrapcheck
+
+  settings:
+    nakedret:
+      max-func-lines: 40
+    funlen:
+      lines: 80
+      statements: 0
+    cyclop:
+      max-complexity: 15
+
+  exclusions:
+    generated: strict
+    warn-unused: true
+    rules:
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - errcheck
+          - dupl
+          - gosec
+
+      - path-except: _test\.go
+        linters:
+          - forbidigo
+
+      - linters:
+          - staticcheck
+        text: "SA1029:"
+
+      - linters:
+          - lll
+        source: "^//go:generate "
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+    - golines
+  exclusions:
+    warn-unused: true
+    generated: strict
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly

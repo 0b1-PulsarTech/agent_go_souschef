@@ -1,0 +1,48 @@
+version: "3"
+
+vars:
+  REPO_ROOT:
+    sh: pwd -P | sed 's#/tools##'
+  GOLANGCI_CONFIG: "{{.REPO_ROOT}}/tools/.golangci.yml"
+
+env:
+  GOWORK: "off"
+
+tasks:
+  install:deps:
+    desc: Install all needed dependencies to run project
+    cmds:
+      - go get -tool github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+      - go get -tool go.uber.org/mock/mockgen@latest
+      - go get -tool github.com/jmattheis/goverter/cmd/goverter@latest
+
+  run:formatters:
+    desc: Run formatters on entire project
+    cmds:
+      - golangci-lint fmt --config {{.GOLANGCI_CONFIG}} {{.REPO_ROOT}}/...
+
+  check:formatters:
+    desc: Show formatter diffs without rewriting files
+    cmds:
+      - golangci-lint fmt --diff --config {{.GOLANGCI_CONFIG}} {{.REPO_ROOT}}/...
+
+  run:checks:
+    desc: Run golangci-lint checks on the entire project
+    cmds:
+      - golangci-lint run --config {{.GOLANGCI_CONFIG}} {{.REPO_ROOT}}/...
+
+  run:fixes:
+    desc: Apply golangci-lint autofixes on the entire project
+    cmds:
+      - golangci-lint run --fix --config {{.GOLANGCI_CONFIG}} {{.REPO_ROOT}}/...
+
+  gen:code:
+    desc: Generate all needed code for the project to run
+    cmds:
+      - go tool sqlc generate
+      - go generate {{.REPO_ROOT}}/...
+
+  gen:modernize:
+    desc: Apply gopls modernizers (in-place rewrites)
+    cmds:
+      - go tool modernize -fix {{.REPO_ROOT}}/...
