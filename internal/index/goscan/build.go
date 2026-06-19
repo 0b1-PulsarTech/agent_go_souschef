@@ -3,18 +3,34 @@ package goscan
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/0b1-PulsarTech/agent_go_souschef/internal/index/repomodel"
 	"golang.org/x/tools/go/packages"
 )
 
-func (idx *Indexer) Build(ctx context.Context) (repomodel.Snapshot, error) {
-	cfg := &packages.Config{Context: ctx, Dir: idx.root, Mode: pkgMode()}
-	pkgs, err := packages.Load(cfg, "./...")
+// Build loads every module under the workspace root and folds their symbols
+// and call edges into one snapshot. A module that fails to load is skipped
+// with a warning rather than failing the whole index.
+func (idx Indexer) Build(ctx context.Context) (repomodel.Snapshot, error) {
+	plans, err := loadPlans(idx.root)
 	if err != nil {
-		return repomodel.Snapshot{}, fmt.Errorf("load packages: %w", err)
+		return repomodel.Snapshot{}, fmt.Errorf("discover modules: %w", err)
 	}
-	return collect(pkgs, idx.root)
+	builder := newBuilder(idx.root)
+	for _, plan := range plans {
+		cfg := &packages.Config{Context: ctx, Dir: plan.dir, Mode: pkgMode()}
+		pkgs, loadErr := packages.Load(cfg, plan.patterns...)
+		if loadErr != nil {
+			slog.Warn("skip module", "dir", plan.dir, "err", loadErr)
+			continue
+		}
+		if err = builder.addPackages(pkgs); err != nil {
+			return repomodel.Snapshot{}, err
+		}
+	}
+	builder.addImplementations()
+	return builder.snapshot, nil
 }
 
 func pkgMode() packages.LoadMode {

@@ -10,23 +10,27 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func collect(pkgs []*packages.Package, root string) (repomodel.Snapshot, error) {
-	builder := snapshotBuilder{ids: map[types.Object]int64{}, names: map[string]int64{}, root: root}
-	for _, pkg := range pkgs {
-		if err := builder.addPackage(pkg); err != nil {
-			return repomodel.Snapshot{}, err
-		}
-	}
-	builder.addImplementations()
-	return builder.snapshot, nil
-}
-
 type snapshotBuilder struct {
 	nextID   int64
 	root     string
 	ids      map[types.Object]int64
 	names    map[string]int64
 	snapshot repomodel.Snapshot
+}
+
+func newBuilder(root string) *snapshotBuilder {
+	return &snapshotBuilder{root: root, ids: map[types.Object]int64{}, names: map[string]int64{}}
+}
+
+// addPackages folds one module's loaded packages into the snapshot. It is
+// called once per module so several loads accumulate into a single index.
+func (b *snapshotBuilder) addPackages(pkgs []*packages.Package) error {
+	for _, pkg := range pkgs {
+		if err := b.addPackage(pkg); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (b *snapshotBuilder) addPackage(pkg *packages.Package) error {

@@ -40,12 +40,11 @@ func DoInjections(inj remy.Injector, cfg Config) {
 		})
 
 	// Source-level collaborators (cheap to build; singletons).
-	remy.RegisterConstructor(inj, remy.Singleton[*goscan.Indexer],
-		func() *goscan.Indexer { return goscan.New(cfg.Root) })
+	remy.RegisterConstructor(inj, remy.Singleton[goscan.Indexer],
+		func() goscan.Indexer { return goscan.New(cfg.Root) })
 	remy.RegisterConstructor(inj, remy.Singleton[*gitprobe.Probe],
 		func() *gitprobe.Probe { return gitprobe.New(cfg.Root) })
 
-	// Service is the only thing that needs three deps wired together.
 	// DuckTypeElements: true lets remy match the concrete types to the
 	// LanguageIndexer / SymbolStore / ChangeReporter interface params.
 	remy.RegisterConstructorArgs3(inj, remy.Singleton[*repocontext.Service],

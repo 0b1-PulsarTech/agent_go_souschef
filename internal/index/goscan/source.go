@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func (idx *Indexer) Source(_ context.Context, query string) (string, error) {
+func (idx Indexer) Source(_ context.Context, query string) (string, error) {
 	fset := token.NewFileSet()
 	err := filepath.WalkDir(idx.root, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil || entry.IsDir() || filepath.Ext(path) != ".go" {
@@ -51,10 +51,6 @@ func nodeText(fset *token.FileSet, node ast.Node) string {
 	var buf bytes.Buffer
 	_ = format.Node(&buf, fset, node)
 	return strings.TrimSpace(buf.String())
-}
-
-func sourcePath(root, name string) string {
-	return filepath.Join(root, name)
 }
 
 type sourceFound struct{ text string }
