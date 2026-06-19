@@ -1,12 +1,12 @@
 version: "2"
 sql:
   - engine: "sqlite"
-    queries: "internal/reposqlite/sql/queries.sql"
-    schema: "internal/reposqlite/sql/schema.sql"
+    queries: "internal/index/reposqlite/sql/queries.sql"
+    schema: "internal/index/reposqlite/sql/schema.sql"
     gen:
       go:
         package: "db"
-        out: "internal/reposqlite/db"
+        out: "internal/index/reposqlite/db"
         emit_interface: false
         emit_json_tags: false
         emit_exact_table_names: false
