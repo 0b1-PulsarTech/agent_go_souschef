@@ -13,5 +13,5 @@ import (
 func TestRegisterMCP_NoPanic(t *testing.T) {
 	t.Parallel()
 	server := mcpkit.New("test", "0.0.0")
-	RegisterMCP(server, new(repocontext.Service))
+	RegisterMCP(server, repocontext.Service{})
 }

@@ -11,7 +11,7 @@ import (
 
 // RegisterMCP wires every Service operation as its own MCP tool on s, so the
 // LLM's catalog shows four entries picked by purpose.
-func RegisterMCP(s *mcpkit.Server, svc *repocontext.Service) {
+func RegisterMCP(s *mcpkit.Server, svc repocontext.Service) {
 	mcpkit.Tool(s, "souschef_sync",
 		"Build or refresh the symbol index for the current workspace.",
 		func(ctx context.Context, _ SyncIn) (Result, error) {

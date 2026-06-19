@@ -51,7 +51,7 @@ func DoInjections(inj remy.Injector, cfg Config) {
 
 	// DuckTypeElements: true lets remy match the concrete types to the
 	// LanguageIndexer / SymbolStore / ChangeReporter interface params.
-	remy.RegisterConstructorArgs3(inj, remy.Singleton[*repocontext.Service],
+	remy.RegisterConstructorArgs3(inj, remy.Singleton[repocontext.Service],
 		repocontext.New)
 }
 

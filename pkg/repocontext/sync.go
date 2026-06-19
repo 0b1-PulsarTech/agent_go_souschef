@@ -2,7 +2,7 @@ package repocontext
 
 import "context"
 
-func (svc *Service) Sync(ctx context.Context) (string, error) {
+func (svc Service) Sync(ctx context.Context) (string, error) {
 	snap, err := svc.indexer.Build(ctx)
 	if err != nil {
 		return "", err

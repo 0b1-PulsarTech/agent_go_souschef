@@ -30,7 +30,7 @@ func TestDoInjections_ResolvesEveryType(t *testing.T) {
 	if _, err := remy.Get[*gitprobe.Probe](inj); err != nil {
 		t.Fatalf("probe: %v", err)
 	}
-	if _, err := remy.Get[*repocontext.Service](inj); err != nil {
+	if _, err := remy.Get[repocontext.Service](inj); err != nil {
 		t.Fatalf("service: %v", err)
 	}
 }

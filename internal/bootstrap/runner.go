@@ -16,7 +16,7 @@ import (
 // RunMCP resolves the Service from the injector, registers the four MCP tools
 // on a new mcpkit.Server, and blocks until the client disconnects.
 func RunMCP(ctx context.Context, inj remy.Injector, cfg Config) error {
-	svc, err := remy.Get[*repocontext.Service](inj)
+	svc, err := remy.Get[repocontext.Service](inj)
 	if err != nil {
 		return fmt.Errorf("resolve service: %w", err)
 	}
@@ -42,7 +42,7 @@ func RunMCP(ctx context.Context, inj remy.Injector, cfg Config) error {
 // users can bootstrap the index from a terminal before connecting an MCP
 // client (Claude Code, Codex, …).
 func RunSync(ctx context.Context, inj remy.Injector, out io.Writer) error {
-	svc, err := remy.Get[*repocontext.Service](inj)
+	svc, err := remy.Get[repocontext.Service](inj)
 	if err != nil {
 		return fmt.Errorf("resolve service: %w", err)
 	}

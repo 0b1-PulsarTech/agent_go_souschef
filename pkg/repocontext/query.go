@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (svc *Service) Query(ctx context.Context, query string, expanded bool) (string, error) {
+func (svc Service) Query(ctx context.Context, query string, expanded bool) (string, error) {
 	query = strings.TrimSpace(query)
 	if query == "" {
 		return "", fmt.Errorf("query is required")
@@ -18,7 +18,7 @@ func (svc *Service) Query(ctx context.Context, query string, expanded bool) (str
 	return renderCompact(hit, expanded), nil
 }
 
-func (svc *Service) lookup(ctx context.Context, query string) (QueryHit, error) {
+func (svc Service) lookup(ctx context.Context, query string) (QueryHit, error) {
 	symbols, err := svc.store.Lookup(ctx, query)
 	if err != nil {
 		return QueryHit{}, err

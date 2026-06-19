@@ -2,7 +2,7 @@ package repocontext
 
 import "context"
 
-func (svc *Service) lookupSymbol(ctx context.Context, symbol Symbol) (QueryHit, error) {
+func (svc Service) lookupSymbol(ctx context.Context, symbol Symbol) (QueryHit, error) {
 	calls, err := svc.store.Calls(ctx, symbol.ID)
 	if err != nil {
 		return QueryHit{}, err

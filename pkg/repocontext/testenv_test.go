@@ -22,7 +22,7 @@ func sampleRoot(t *testing.T) string {
 // newTestService wires a Service against the sample fixture with real
 // collaborators (goscan + SQLite + gitprobe). Mirrors the production wiring
 // in internal/bootstrap but without remy.
-func newTestService(t *testing.T) *Service {
+func newTestService(t *testing.T) Service {
 	t.Helper()
 	root := sampleRoot(t)
 	store, err := reposqlite.Open(filepath.Join(root, ".repo-context", "index.db"))
