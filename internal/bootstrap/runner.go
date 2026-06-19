@@ -19,6 +19,15 @@ func RunMCP(ctx context.Context, inj remy.Injector, cfg Config) error {
 	if err != nil {
 		return fmt.Errorf("resolve service: %w", err)
 	}
+	// Build the index up-front so the first query has data to answer from.
+	// A failure here is non-fatal: the server still starts and the client can
+	// re-run souschef_sync once the workspace is fixed. We only log it.
+	if summary, syncErr := svc.Sync(ctx); syncErr != nil {
+		slog.Warn("initial sync failed", "err", syncErr)
+	} else {
+		slog.Info("initial sync", "result", summary)
+	}
+
 	server := mcpkit.New("agent_go_souschef", cfg.Version)
 	repocontext.RegisterMCP(server, svc)
 	if err := server.Run(ctx); err != nil {
