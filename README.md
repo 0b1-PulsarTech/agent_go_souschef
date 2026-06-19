@@ -16,7 +16,10 @@ Four MCP tools on one stdio server:
 | `souschef_source` | Return the file + source snippet for a named symbol. |
 | `souschef_changed` | List modified files (optionally filtered by scope). |
 
-The index lives at `./.repo-context/index.db` (SQLite). Add it to `.gitignore`.
+The index is a throwaway cache kept under the OS temp dir
+(`$TMPDIR/agent_go_souschef/<workspace-hash>/index.db`), so it never touches
+the project you are indexing — nothing to add to `.gitignore`. The `mcp`
+server builds it automatically on startup, so a manual `sync` is optional.
 
 ---
 
@@ -34,10 +37,9 @@ echo 'export PATH="$(go env GOPATH)/bin:$PATH"' >> ~/.bashrc  # or ~/.zshrc
 # 2. Verify
 agent_go-souschef --help
 
-# 3. In the project you want to index
+# 3. (Optional) pre-build the index — the mcp server also does this on startup
 cd /path/to/your/go/project
-agent_go-souschef sync          # builds .repo-context/index.db
-echo '.repo-context/' >> .gitignore
+agent_go-souschef sync          # builds the index under $TMPDIR
 ```
 
 Wire it into Claude Code — create `.claude/mcp.json` at your project root:
@@ -56,13 +58,6 @@ Wire it into Claude Code — create `.claude/mcp.json` at your project root:
 
 Restart Claude Code. The four tools show up in the catalog.
 
-(Optional) install the `PreToolUse` hook so Claude consults the index before
-calling `Read` / `Grep`:
-
-```sh
-agent_go-souschef hook install --claude
-```
-
 Full guide: [`docs/setup/claude-native.md`](docs/setup/claude-native.md).
 
 ### Option B — Docker (no Go toolchain on host)
@@ -71,7 +66,7 @@ Full guide: [`docs/setup/claude-native.md`](docs/setup/claude-native.md).
 # 1. Build the image (or pull, once we publish one)
 docker build -t agent_go_souschef:latest -f build/Dockerfile .
 
-# 2. Bootstrap the index for your project
+# 2. (Optional) pre-build the index — the mcp server also does this on startup
 cd /path/to/your/go/project
 docker run --rm -v "$PWD:/workspace" -w /workspace agent_go_souschef:latest sync
 ```
@@ -94,7 +89,7 @@ Wire it into Claude Code — `.claude/mcp.json`:
 }
 ```
 
-Full guide (including SELinux/`:Z`, hook caveats, distroless notes):
+Full guide (including SELinux/`:Z`, distroless notes):
 [`docs/setup/claude-docker.md`](docs/setup/claude-docker.md).
 
 ---
@@ -138,11 +133,12 @@ task -d tools gen:modernize      # gopls modernize -fix
 
 ## How it works
 
-`agent_go-souschef sync` walks the workspace with
-`golang.org/x/tools/go/packages`, extracts every symbol + call-graph edge,
-and persists it to SQLite via sqlc-typed queries. `agent_go-souschef mcp`
-serves the index as four MCP tools — the LLM calls them instead of reading
-raw files.
+The indexer walks the workspace with `golang.org/x/tools/go/packages`,
+extracts every symbol + call-graph edge, and persists it to SQLite via
+sqlc-typed queries. It is workspace-aware: a `go.work` monorepo is indexed
+across all of its modules, not just the root. `agent_go-souschef mcp` builds
+the index on startup and serves it as four MCP tools — the LLM calls them
+instead of reading raw files.
 
 Architecture: see [`AGENTS.md`](AGENTS.md) for layout and
 [`docs/patterns/`](docs/patterns/) for the bootstrap / DI / MCP wiring patterns.

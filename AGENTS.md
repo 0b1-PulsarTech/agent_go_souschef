@@ -8,17 +8,21 @@ Entry point for human contributors **and** AI agents working on this repository.
 
 `agent_go_souschef` is a single-binary CLI that builds a semantic symbol index
 for Go repositories and exposes it to LLMs as a Model Context Protocol server.
-Two integration paths:
 
 - **MCP server** (`agent_go-souschef mcp`) — stdio MCP, four tools:
   `souschef_sync`, `souschef_query`, `souschef_source`, `souschef_changed`.
   Used by Claude Code, Codex, Cursor, or any MCP host.
-- **Hook** (`agent_go-souschef hook install --claude`) — `PreToolUse` hook
-  that lets Claude consult the index before reading files.
 
-The index lives in `<workspace>/.repo-context/index.db` (SQLite, sqlc-typed).
-Answers are compact (30–200 tokens); raw source is returned only via the
-`souschef_source` tool.
+The indexer is workspace-aware: a `go.work` monorepo is indexed across all of
+its modules in one pass, and a repo with nested modules (a `database/entschema`
+with its own `go.mod`, no `go.work`) has every module loaded on its own.
+
+The index is a throwaway cache, so it lives under the OS temp dir at
+`$TMPDIR/agent_go_souschef/<hash-of-workspace-path>/index.db` (SQLite,
+sqlc-typed) — never inside the project being indexed. The `mcp` server builds
+it automatically on startup, and the `souschef_sync` tool refreshes it on
+demand, so a manual `sync` is optional. Answers are compact (30–200 tokens);
+raw source is returned only via the `souschef_source` tool.
 
 Installation and Claude Code setup: see [`README.md`](README.md).
 
@@ -34,9 +38,11 @@ Installation and Claude Code setup: see [`README.md`](README.md).
 | `internal/source/gitprobe/` | go-git/v5 based change detection. |
 | `internal/source/queryview/` | Compact result rendering. |
 | `internal/integrations/mcpkit/` | Thin generic wrapper around the MCP SDK — `Tool[In, Out]`. |
-| `internal/integrations/hooksetup/` | Hook install + `PreToolUse` handlers. |
-| `pkg/repocontext/` | Public API — `*Service`, ports, `RegisterMCP`. |
-| `test/fixtures/sample/` | Test fixtures (own `go.mod`, module `sample`). |
+| `pkg/repocontext/` | Public domain API — `Service`, ports, domain types. No transport imports. |
+| `pkg/repocontext/mcpsvc/` | Adapts `Service` to MCP tools (`RegisterMCP` + IO schema); keeps the MCP SDK out of `repocontext`. |
+| `test/fixtures/sample/` | Single-module fixture (own `go.mod`, module `sample`). |
+| `test/fixtures/workspace/` | go.work monorepo fixture (two modules). |
+| `test/fixtures/multimod/` | Nested-module fixture (no go.work). |
 | `tools/` | Build/dev tooling (separate Go module, `Taskfile.yml`, `.golangci.yml`, tool directives). |
 | `docs/rules/` | Mandatory engineering rules. |
 | `docs/patterns/` | Canonical implementation recipes. |
@@ -63,11 +69,8 @@ When a rule or pattern is ambiguous, fall back — in order — to:
 ```sh
 # Build & smoke
 go build ./cmd/agent_go-souschef
-./agent_go-souschef sync                    # build index in cwd
+./agent_go-souschef sync                    # build index for cwd (optional)
 ./agent_go-souschef mcp                     # start MCP server (Ctrl-C to exit)
-
-# Hook setup
-./agent_go-souschef hook install --claude
 
 # Codegen / lint / modernize (run from repo root)
 go tool -modfile=tools/go.mod sqlc generate
@@ -107,11 +110,11 @@ These are not negotiable:
 - Start every change by reading the rules referenced by the task.
 - Prefer surgical edits. Don't reformat unrelated files.
 - When adding a new MCP-exposed operation:
-  1. Add a method to `*repocontext.Service` (`pkg/repocontext/<op>.go`).
+  1. Add a method to `repocontext.Service` (`pkg/repocontext/<op>.go`).
   2. Add SQL to `internal/index/reposqlite/sql/queries.sql` if needed and
      run `sqlc generate`.
-  3. Register the new tool with `mcpkit.Tool(...)` in
-     `pkg/repocontext/mcptools.go`.
+  3. Add the tool's IO struct to `pkg/repocontext/mcpsvc/schema.go` and register
+     it with `mcpkit.Tool(...)` in `pkg/repocontext/mcpsvc/tools.go`.
   4. If it needs CLI surface, add a `Run<Op>` to `internal/bootstrap/runner.go`
      and a `case` in `cmd/agent_go-souschef/main.go`.
 - Consumer-defined interfaces: `SymbolStore` is declared in `pkg/repocontext/`,

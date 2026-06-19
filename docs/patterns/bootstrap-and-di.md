@@ -12,7 +12,7 @@ using `github.com/wrapped-owls/goremy-di/remy` for constructor injection.
 3. Hands the injector to `bootstrap.RunMCP` or `bootstrap.RunSync`.
 
 Every concrete construction (open SQLite, build the goscan indexer, open the
-git repo, build the `*Service`) lives in `internal/bootstrap/bootstrap.go`.
+git repo, build the `Service`) lives in `internal/bootstrap/bootstrap.go`.
 
 ## File layout
 
@@ -38,7 +38,9 @@ func DoInjections(inj remy.Injector, cfg Config) {
 
     remy.RegisterConstructorErr(inj, remy.Singleton[*reposqlite.Store],
         func() (*reposqlite.Store, error) {
-            return reposqlite.Open(filepath.Join(cfg.Root, ".repo-context", "index.db"))
+            // Throwaway cache under $TMPDIR keyed by workspace path — never
+            // inside the project being indexed (see indexPath in bootstrap.go).
+            return reposqlite.Open(indexPath(cfg.Root))
         })
 
     remy.RegisterConstructor(inj, remy.Singleton[*goscan.Indexer],

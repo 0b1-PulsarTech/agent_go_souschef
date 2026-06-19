@@ -60,18 +60,18 @@ Key flags:
 | `--rm` | Remove the container on exit (every MCP session is fresh). |
 | `-i` | Keep stdin open — MCP uses stdio for transport. |
 | `-v ${workspaceFolder}:/workspace` | Expose the project source so `go/packages` can load it. |
-| `-w /workspace` | Make `/workspace` the cwd so `.repo-context/index.db` lands inside the volume. |
+| `-w /workspace` | Make `/workspace` the cwd so `go/packages` loads from the project root. |
 
-## 3. Bootstrap the index
+## 3. (Optional) Bootstrap the index
 
-From the host:
+The `mcp` server builds the index on startup, so this is optional. Because the
+index lives under the container's temp dir, a `--rm` container rebuilds it each
+run — which is exactly what the startup sync does. Run `sync` manually only if
+you want to surface indexing errors before connecting a client:
 
 ```sh
 docker run --rm -v "$PWD:/workspace" -w /workspace agent_go_souschef:latest sync
 ```
-
-This populates `./.repo-context/index.db` inside the project, accessible to
-every subsequent containerised `mcp` invocation.
 
 ## Caveats
 
@@ -81,9 +81,6 @@ every subsequent containerised `mcp` invocation.
   [go-git](https://github.com/go-git/go-git) library, so the missing binary
   doesn't matter — but the `.git/` directory **must** be in the mounted
   volume for `souschef_changed` to work.
-- The hook subcommand needs write access to `~/.claude/settings.json`, which
-  isn't in the container's filesystem. Install hooks from the host with the
-  native binary instead.
 
 ## See also
 

@@ -14,7 +14,7 @@ Where each file goes.
 |---|---|
 | `cmd/agent_go-souschef/` | Binary entry point. Thin `main.go` only — parse args, build injector, dispatch. |
 | `internal/` | Implementation packages, grouped by domain (`index/`, `source/`, `integrations/`, `bootstrap/`). |
-| `pkg/repocontext/` | Stable public API — `*Service`, `RegisterMCP`, the ports. |
+| `pkg/repocontext/` | Stable public API — `Service`, the ports, domain types. MCP wiring lives in its `mcpsvc/` subpackage. |
 | `test/fixtures/` | Test fixtures. Each subdirectory has its own `go.mod` so it stays out of the main module build. |
 | `tools/` | Build/dev tooling — separate Go module with `Taskfile.yml`, `.golangci.yml`, tool directives for sqlc/mockgen/gopls/modernize. |
 | `docs/` | This documentation tree. |
@@ -23,11 +23,11 @@ Where each file goes.
 
 ```
 cmd/agent_go-souschef/
-├── main.go        # parse os.Args, build injector, dispatch (mcp|sync|hook)
+├── main.go        # parse os.Args, build injector, dispatch (mcp|sync)
 └── main_test.go   # smoke test on the dispatch switch
 ```
 
-`main.go` holds zero business logic. Three switch cases, every substantial
+`main.go` holds zero business logic. Two switch cases, every substantial
 operation lives in `internal/bootstrap/`.
 
 ## `internal/` — grouped by domain
@@ -45,15 +45,14 @@ internal/
 │   ├── gitprobe/{gitprobe.go, changed.go}  # go-git/v5 based
 │   └── queryview/                          # result rendering
 └── integrations/
-    ├── mcpkit/{mcpkit.go, tool.go}         # generic MCP wrapper
-    └── hooksetup/                          # PreToolUse hook install + handler
+    └── mcpkit/{mcpkit.go, tool.go}         # generic MCP wrapper
 ```
 
 The three buckets capture the conceptual layers:
 
 - **`index/`** — everything that builds, stores, or describes symbols.
 - **`source/`** — everything that reads the workspace directly (git, files).
-- **`integrations/`** — everything that talks to an external host (MCP, hooks).
+- **`integrations/`** — everything that talks to an external host (MCP).
 
 `bootstrap/` sits outside them because it composes all three.
 
@@ -69,11 +68,15 @@ pkg/repocontext/
 ├── query_lookup.go
 ├── source.go
 ├── changed.go
-├── mcptools.go       # RegisterMCP(s, svc) — four mcpkit.Tool registrations
-└── *_test.go
+├── *_test.go
+└── mcpsvc/           # MCP adapter subpackage — keeps the MCP SDK out of repocontext
+    ├── tools.go      # RegisterMCP(s, svc) — four mcpkit.Tool registrations
+    ├── schema.go     # QueryIn / SourceIn / ChangedIn / SyncIn / Result IO structs
+    └── tools_test.go
 ```
 
 Everything exported here is part of the stable surface. Add deliberately.
+The MCP wiring sits in `mcpsvc` so `repocontext` itself imports no transport.
 
 ## File-level rules
 

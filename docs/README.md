@@ -38,8 +38,7 @@ Implementation recipes with copyable templates.
 - [`cli-skeleton.md`](patterns/cli-skeleton.md) — `cmd/agent_go-souschef/main.go` shape
 - [`bootstrap-and-di.md`](patterns/bootstrap-and-di.md) — `DoInjections` + `RunMCP`/`RunSync`
 - [`mcp-server.md`](patterns/mcp-server.md) — `mcpkit.Tool[In,Out]` + `RegisterMCP`
-- [`hook-install.md`](patterns/hook-install.md) — `PreToolUse` install + handler
-- [`usecase-layout.md`](patterns/usecase-layout.md) — `*Service` method layout
+- [`usecase-layout.md`](patterns/usecase-layout.md) — `Service` method layout
 - [`app-skeleton.md`](patterns/app-skeleton.md) — adding a new subcommand end-to-end
 
 ### [`setup/`](setup/) — End-user installation

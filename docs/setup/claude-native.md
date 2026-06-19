@@ -21,17 +21,20 @@ Verify:
 agent_go-souschef --help
 ```
 
-## 2. Bootstrap the index for your project
+## 2. (Optional) Bootstrap the index for your project
 
-From the root of the Go project you want to expose:
+The `mcp` server builds the index automatically on startup, so this step is
+optional. Run it only if you want the index ready before the first MCP call:
 
 ```sh
 cd /path/to/your/go/project
 agent_go-souschef sync
 ```
 
-This scans the workspace and writes the index to `./.repo-context/index.db`.
-Add `.repo-context/` to `.gitignore`.
+This scans the workspace — including every module of a `go.work` monorepo —
+and writes the index to a throwaway location under the OS temp dir
+(`$TMPDIR/agent_go_souschef/<workspace-hash>/index.db`). Nothing is written
+into the project, so there is nothing to `.gitignore`.
 
 ## 3. Wire it into Claude Code
 
@@ -53,28 +56,17 @@ Restart Claude Code — the four tools (`souschef_sync`, `souschef_query`,
 `souschef_source`, `souschef_changed`) appear in the tool catalog.
 
 > **Note**: Claude spawns the process **in the workspace folder**, so the
-> index file at `./.repo-context/index.db` is found automatically. Subsequent
-> sessions just call `souschef_sync` over MCP to refresh it.
-
-## 4. (Optional) Install the PreToolUse hook
-
-If you want Claude to consult the index before doing `Read`/`Grep` on indexed
-Go files, install the hook too:
-
-```sh
-agent_go-souschef hook install --claude
-```
-
-This writes a `PreToolUse` entry to `~/.claude/settings.json`. Idempotent —
-re-running won't duplicate it.
+> index location is derived from that path and reused across sessions. The
+> server runs an initial sync on startup; `souschef_sync` refreshes it on
+> demand mid-session.
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---|---|
 | Tools don't appear after restart | Check `.claude/mcp.json` is valid JSON; run `agent_go-souschef mcp` manually to see startup errors. |
-| `souschef_query` returns "no symbols" | Run `souschef_sync` first (or `agent_go-souschef sync` in a terminal). |
-| Permission denied on `.repo-context/index.db` | Delete the directory and resync; SQLite needs write access. |
+| `souschef_query` returns "no symbols" | The startup sync may have failed — call `souschef_sync` again and check the server's stderr log. |
+| Index seems stale | Call `souschef_sync` to rebuild; the temp index is keyed by workspace path and reused across runs. |
 | Wrong project indexed | Ensure `cwd` in `.claude/mcp.json` is `${workspaceFolder}` and Claude opened the right folder. |
 
 ## See also

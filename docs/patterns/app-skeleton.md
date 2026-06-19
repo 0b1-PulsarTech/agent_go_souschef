@@ -19,8 +19,6 @@ agent_go_souschef/
 │   ├── gitprobe/
 │   ├── queryview/
 │   ├── repomodel/
-│   ├── catalog/
-│   ├── hooksetup/
 │   └── mcpserver/
 ├── pkg/repocontext/
 ├── fixtures/sample/
@@ -107,4 +105,3 @@ task tools:lint
 
 - [`bootstrap-and-di.md`](bootstrap-and-di.md) — wiring and DI pattern.
 - [`mcp-server.md`](mcp-server.md) — exposing operations over MCP.
-- [`hook-install.md`](hook-install.md) — adding hook targets.

@@ -9,13 +9,13 @@ stdio server. Tools are registered through a thin internal wrapper,
 
 ```
 internal/integrations/mcpkit/   ← the wrapper (Server, generic Tool[In,Out], Run)
-pkg/repocontext/mcptools.go     ← the handlers (one RegisterMCP call, four tools)
+pkg/repocontext/mcpsvc/          ← the handlers (RegisterMCP + IO schema, four tools)
 ```
 
 The wrapper is internal so the rest of the codebase never touches the raw SDK.
-The handlers live in `pkg/` so they're part of the public API surface —
-mirroring amigonimo's `pkg/web/handlers/*ctrl/router.go` consuming
-`pkg/web.RouterContract`.
+The handlers live in `mcpsvc`, a subpackage of `repocontext`, so the MCP SDK
+stays out of the domain package — anything importing `repocontext` as a library
+gets the `Service` without the transport.
 
 ## `mcpkit/mcpkit.go` + `mcpkit/tool.go`
 
@@ -42,10 +42,10 @@ func Tool[In, Out any](s *Server, name, description string,
 }
 ```
 
-## `pkg/repocontext/mcptools.go`
+## `pkg/repocontext/mcpsvc/tools.go`
 
 ```go
-func RegisterMCP(s *mcpkit.Server, svc *Service) {
+func RegisterMCP(s *mcpkit.Server, svc repocontext.Service) {
     mcpkit.Tool(s, "souschef_sync", "Build or refresh the symbol index.",
         func(ctx context.Context, _ SyncIn) (Result, error) {
             text, err := svc.Sync(ctx); return Result{Text: text}, err
@@ -73,17 +73,18 @@ hiding behind a `command: ...` discriminator on a single tool.
 
 | Tool | Input | What it returns |
 |---|---|---|
-| `souschef_sync` | `{}` | "Synced." (or an error) — call once per session before querying. |
+| `souschef_sync` | `{}` | "Synced." (or an error) — refreshes the index on demand; the server already runs one sync on startup. |
 | `souschef_query` | `{query, expand?}` | Compact symbol + callers/callees. `expand: true` for transitive. |
 | `souschef_source` | `{query}` | File path + source snippet for the named symbol. |
 | `souschef_changed` | `{scope?}` | Modified-files list, optionally filtered by path. |
 
 ## Adding a new tool
 
-1. Add the method to `*repocontext.Service` (`pkg/repocontext/<op>.go`).
-2. Add Input/Output structs near the top of `pkg/repocontext/mcptools.go`.
-3. Add a single `mcpkit.Tool(s, "souschef_<name>", desc, handler)` call.
-4. Add a `t.Run` smoke to `mcptools_test.go`.
+1. Add the method to `repocontext.Service` (`pkg/repocontext/<op>.go`).
+2. Add Input/Output structs to `pkg/repocontext/mcpsvc/schema.go`.
+3. Add a single `mcpkit.Tool(s, "souschef_<name>", desc, handler)` call in
+   `pkg/repocontext/mcpsvc/tools.go`.
+4. Add a `t.Run` smoke to `mcpsvc/tools_test.go`.
 
 No router boilerplate, no handler-per-file overhead.
 

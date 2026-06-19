@@ -34,7 +34,6 @@ bootstrap.DoInjections(inj, cfg)
 switch sub {
 case "mcp":  os.Exit(bootstrap.RunMCP(ctx, inj, cfg))
 case "sync": os.Exit(bootstrap.RunSync(ctx, inj, stdout))
-case "hook": os.Exit(hooksetup.Run(args))   // stateless, no injector
 }
 ```
 
@@ -55,8 +54,8 @@ needed.
 Constructors **list every dependency** as a parameter:
 
 ```go
-func New(indexer LanguageIndexer, store SymbolStore, changes ChangeReporter) *Service {
-    return &Service{indexer: indexer, store: store, changes: changes}
+func New(indexer LanguageIndexer, store SymbolStore, changes ChangeReporter) Service {
+    return Service{indexer: indexer, store: store, changes: changes}
 }
 ```
 
