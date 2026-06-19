@@ -15,6 +15,14 @@ func (svc Service) lookupSymbol(ctx context.Context, symbol Symbol) (QueryHit, e
 	if err != nil {
 		return QueryHit{}, err
 	}
+	usedBy, err := svc.store.References(ctx, symbol.ID)
+	if err != nil {
+		return QueryHit{}, err
+	}
+	usesTypes, err := svc.store.TypeUses(ctx, symbol.ID)
+	if err != nil {
+		return QueryHit{}, err
+	}
 	methods, err := svc.store.Methods(ctx, symbol.ID)
 	if err != nil {
 		return QueryHit{}, err
@@ -24,6 +32,8 @@ func (svc Service) lookupSymbol(ctx context.Context, symbol Symbol) (QueryHit, e
 		Calls:           calls,
 		Callers:         callers,
 		Implementations: impls,
+		UsedBy:          usedBy,
+		UsesTypes:       usesTypes,
 		Methods:         methods,
 	}, nil
 }

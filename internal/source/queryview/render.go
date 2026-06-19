@@ -17,6 +17,8 @@ func Render(hit repomodel.QueryHit, expanded bool) string {
 	section(&b, "Calls", hit.Calls)
 	section(&b, "Implementations", hit.Implementations)
 	section(&b, "Referenced by", hit.Callers)
+	section(&b, "Used as type by", hit.UsedBy)
+	section(&b, "Uses types", hit.UsesTypes)
 	if expanded && hit.Symbol.Signature != "" {
 		line(&b, "Signature: ", hit.Symbol.Signature)
 	}

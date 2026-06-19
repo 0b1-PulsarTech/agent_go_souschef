@@ -48,6 +48,22 @@ func (s *Store) Implementations(ctx context.Context, id int64) ([]string, error)
 	return out, nil
 }
 
+func (s *Store) References(ctx context.Context, id int64) ([]string, error) {
+	out, err := s.q.GetReferencesOf(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("references: %w", err)
+	}
+	return out, nil
+}
+
+func (s *Store) TypeUses(ctx context.Context, id int64) ([]string, error) {
+	out, err := s.q.GetTypeUsesFrom(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("type uses: %w", err)
+	}
+	return out, nil
+}
+
 func (s *Store) Methods(ctx context.Context, id int64) ([]string, error) {
 	out, err := s.q.GetMethodsOf(ctx, id)
 	if err != nil {

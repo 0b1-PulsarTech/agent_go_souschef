@@ -27,13 +27,16 @@ func (s *Store) Reset(ctx context.Context) error {
 	return nil
 }
 
-// Write persists a snapshot. Relations from Calls and Implementations are
-// flattened into a single insert pass.
+// Write persists a snapshot. Relations from Calls, Implementations, and
+// TypeRefs are flattened into a single insert pass.
 func (s *Store) Write(ctx context.Context, snap repomodel.Snapshot) error {
 	if err := s.insertSymbols(ctx, snap.Symbols); err != nil {
 		return err
 	}
-	if err := s.insertRelations(ctx, slices.Concat(snap.Calls, snap.Implementations)); err != nil {
+	if err := s.insertRelations(
+		ctx,
+		slices.Concat(snap.Calls, snap.Implementations, snap.TypeRefs),
+	); err != nil {
 		return err
 	}
 	if err := s.insertFiles(ctx, snap.Files); err != nil {

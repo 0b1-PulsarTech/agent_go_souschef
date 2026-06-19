@@ -52,6 +52,20 @@ JOIN symbols s ON s.id = r.to_id
 WHERE r.from_id = ? AND r.edge_kind = 'implement'
 ORDER BY s.name;
 
+-- name: GetReferencesOf :many
+SELECT s.name
+FROM relations r
+JOIN symbols s ON s.id = r.from_id
+WHERE r.to_id = ? AND r.edge_kind = 'ref'
+ORDER BY s.name;
+
+-- name: GetTypeUsesFrom :many
+SELECT s.name
+FROM relations r
+JOIN symbols s ON s.id = r.to_id
+WHERE r.from_id = ? AND r.edge_kind = 'ref'
+ORDER BY s.name;
+
 -- name: GetMethodsOf :many
 SELECT name
 FROM methods
