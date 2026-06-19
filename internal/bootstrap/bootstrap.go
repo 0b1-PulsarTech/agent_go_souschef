@@ -7,6 +7,9 @@
 package bootstrap
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"os"
 	"path/filepath"
 
 	"github.com/wrapped-owls/goremy-di/remy"
@@ -32,11 +35,12 @@ type Config struct {
 func DoInjections(inj remy.Injector, cfg Config) {
 	remy.RegisterInstance(inj, cfg)
 
-	// Storage: the SQLite store lives at <root>/.repo-context/index.db so
-	// successive runs reuse the same index file.
+	// Storage: the index is a throwaway cache, so it lives under the OS temp
+	// dir keyed by a hash of the workspace path — never inside the project.
+	// Successive runs on the same workspace still reuse the same file.
 	remy.RegisterConstructorErr(inj, remy.Singleton[*reposqlite.Store],
 		func() (*reposqlite.Store, error) {
-			return reposqlite.Open(filepath.Join(cfg.Root, ".repo-context", "index.db"))
+			return reposqlite.Open(indexPath(cfg.Root))
 		})
 
 	// Source-level collaborators (cheap to build; singletons).
@@ -49,4 +53,17 @@ func DoInjections(inj remy.Injector, cfg Config) {
 	// LanguageIndexer / SymbolStore / ChangeReporter interface params.
 	remy.RegisterConstructorArgs3(inj, remy.Singleton[*repocontext.Service],
 		repocontext.New)
+}
+
+// indexPath returns the throwaway SQLite path for a workspace: a stable,
+// collision-free location under the OS temp dir derived from the workspace
+// path. Keeping the index out of the project tree means souschef never dirties
+// the repo it is indexing.
+func indexPath(root string) string {
+	abs, err := filepath.Abs(root)
+	if err != nil {
+		abs = root
+	}
+	sum := sha256.Sum256([]byte(abs))
+	return filepath.Join(os.TempDir(), "agent_go_souschef", hex.EncodeToString(sum[:8]), "index.db")
 }
