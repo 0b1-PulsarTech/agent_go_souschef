@@ -29,12 +29,29 @@ func MethodRecord(parentID int64, name string) repomodel.Method {
 // compact type signatures without fully-qualified prefixes.
 func ShortPkg(*types.Package) string { return "" }
 
-// RecvName extracts the receiver type name from a method declaration.
+// RecvName extracts the receiver type name from a method declaration,
+// unwrapping pointer receivers (*T) and generic ones (T[P], T[P, Q]). It
+// returns "" if the receiver shape is unrecognised rather than panicking.
 func RecvName(decl *ast.FuncDecl) string {
-	if star, ok := decl.Recv.List[0].Type.(*ast.StarExpr); ok {
-		return star.X.(*ast.Ident).Name
+	if decl.Recv == nil || len(decl.Recv.List) == 0 {
+		return ""
 	}
-	return decl.Recv.List[0].Type.(*ast.Ident).Name
+	return baseTypeName(decl.Recv.List[0].Type)
+}
+
+func baseTypeName(expr ast.Expr) string {
+	switch t := expr.(type) {
+	case *ast.StarExpr: // *T
+		return baseTypeName(t.X)
+	case *ast.IndexExpr: // T[P]
+		return baseTypeName(t.X)
+	case *ast.IndexListExpr: // T[P, Q]
+		return baseTypeName(t.X)
+	case *ast.Ident:
+		return t.Name
+	default:
+		return ""
+	}
 }
 
 // FileSummary accumulates exported symbol names for one source file.
