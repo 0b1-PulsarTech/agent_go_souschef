@@ -30,6 +30,7 @@ func (idx Indexer) Build(ctx context.Context) (repomodel.Snapshot, error) {
 		}
 	}
 	builder.addImplementations()
+	builder.addTypeRefs()
 	return builder.snapshot, nil
 }
 

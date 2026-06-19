@@ -15,6 +15,7 @@ type snapshotBuilder struct {
 	root     string
 	ids      map[types.Object]int64
 	names    map[string]int64
+	pkgs     []*packages.Package
 	snapshot repomodel.Snapshot
 }
 
@@ -25,6 +26,7 @@ func newBuilder(root string) *snapshotBuilder {
 // addPackages folds one module's loaded packages into the snapshot. It is
 // called once per module so several loads accumulate into a single index.
 func (b *snapshotBuilder) addPackages(pkgs []*packages.Package) error {
+	b.pkgs = append(b.pkgs, pkgs...)
 	for _, pkg := range pkgs {
 		if err := b.addPackage(pkg); err != nil {
 			return err

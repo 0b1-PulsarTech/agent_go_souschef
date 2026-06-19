@@ -20,6 +20,7 @@ type Snapshot struct {
 	Files           []FileSummary
 	Calls           []Relation
 	Implementations []Relation
+	TypeRefs        []Relation
 	Methods         []Method
 }
 
@@ -47,6 +48,8 @@ type QueryHit struct {
 	Calls           []string
 	Callers         []string
 	Implementations []string
+	UsedBy          []string
+	UsesTypes       []string
 	Methods         []string
 	TextHits        []TextHit
 	Source          string
