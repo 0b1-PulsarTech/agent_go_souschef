@@ -10,6 +10,7 @@ import (
 
 	"github.com/0b1-PulsarTech/agent_go_souschef/internal/integrations/mcpkit"
 	"github.com/0b1-PulsarTech/agent_go_souschef/pkg/repocontext"
+	"github.com/0b1-PulsarTech/agent_go_souschef/pkg/repocontext/mcpsvc"
 )
 
 // RunMCP resolves the Service from the injector, registers the four MCP tools
@@ -29,7 +30,7 @@ func RunMCP(ctx context.Context, inj remy.Injector, cfg Config) error {
 	}
 
 	server := mcpkit.New("agent_go_souschef", cfg.Version)
-	repocontext.RegisterMCP(server, svc)
+	mcpsvc.RegisterMCP(server, svc)
 	if err := server.Run(ctx); err != nil {
 		slog.Error("mcp server", "err", err)
 		return err
