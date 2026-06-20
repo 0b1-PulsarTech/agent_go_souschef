@@ -9,7 +9,7 @@ stdio server. Tools are registered through a thin internal wrapper,
 
 ```
 internal/integrations/mcpkit/   ← the wrapper (Server, generic Tool[In,Out], Run)
-pkg/repocontext/mcpsvc/          ← the handlers (RegisterMCP + IO schema, four tools)
+pkg/repocontext/mcpsvc/          ← the handlers (RegisterMCP + IO schema, five tools)
 ```
 
 The wrapper is internal so the rest of the codebase never touches the raw SDK.
@@ -62,6 +62,10 @@ func RegisterMCP(s *mcpkit.Server, svc repocontext.Service) {
         func(ctx context.Context, in ChangedIn) (Result, error) {
             text, err := svc.Changed(ctx, in.Scope); return Result{Text: text}, err
         })
+    mcpkit.Tool(s, "souschef_shadows", "Report shadowed builtins/imports/variables.",
+        func(ctx context.Context, in ShadowsIn) (Result, error) {
+            text, err := svc.Shadows(ctx, in.Scope); return Result{Text: text}, err
+        })
 }
 ```
 
@@ -69,7 +73,7 @@ Four distinct tools on the same MCP server. The LLM sees four catalog entries
 with their own descriptions and JSON schemas — better tool selection than
 hiding behind a `command: ...` discriminator on a single tool.
 
-## The four tools
+## The five tools
 
 | Tool | Input | What it returns |
 |---|---|---|
@@ -77,6 +81,7 @@ hiding behind a `command: ...` discriminator on a single tool.
 | `souschef_query` | `{query, expand?}` | Compact symbol + callers/callees. `expand: true` for transitive. |
 | `souschef_source` | `{query}` | File path + source snippet for the named symbol. |
 | `souschef_changed` | `{scope?}` | Modified-files list, optionally filtered by path. |
+| `souschef_shadows` | `{scope?}` | Shadowed identifiers (builtin / import / package symbol / outer variable), grouped by file. |
 
 ## Adding a new tool
 

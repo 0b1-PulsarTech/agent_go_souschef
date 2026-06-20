@@ -52,8 +52,9 @@ Create `.claude/mcp.json` at your project root:
 }
 ```
 
-Restart Claude Code — the four tools (`souschef_sync`, `souschef_query`,
-`souschef_source`, `souschef_changed`) appear in the tool catalog.
+Restart Claude Code — the five tools (`souschef_sync`, `souschef_query`,
+`souschef_source`, `souschef_changed`, `souschef_shadows`) appear in the tool
+catalog.
 
 > **Note**: Claude spawns the process **in the workspace folder**, so the
 > index location is derived from that path and reused across sessions. The

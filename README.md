@@ -7,7 +7,7 @@ re-reading whole files.
 
 ## What you get
 
-Four MCP tools on one stdio server:
+Five MCP tools on one stdio server:
 
 | Tool | Purpose |
 |---|---|
@@ -15,6 +15,7 @@ Four MCP tools on one stdio server:
 | `souschef_query` | Look up a symbol; returns direct callers + callees. `expand=true` for transitive. |
 | `souschef_source` | Return the file + source snippet for a named symbol. |
 | `souschef_changed` | List modified files (optionally filtered by scope). |
+| `souschef_shadows` | List identifiers that shadow a builtin, imported package, package symbol, or outer variable (optionally filtered by scope). |
 
 The index is a throwaway cache kept under the OS temp dir
 (`$TMPDIR/agent_go_souschef/<workspace-hash>/index.db`), so it never touches
@@ -40,6 +41,7 @@ agent_go-souschef --help
 # 3. (Optional) pre-build the index — the mcp server also does this on startup
 cd /path/to/your/go/project
 agent_go-souschef sync          # builds the index under $TMPDIR
+agent_go-souschef shadows       # one-shot: report shadowed builtins/imports/variables
 ```
 
 Wire it into Claude Code — create `.claude/mcp.json` at your project root:
@@ -56,7 +58,7 @@ Wire it into Claude Code — create `.claude/mcp.json` at your project root:
 }
 ```
 
-Restart Claude Code. The four tools show up in the catalog.
+Restart Claude Code. The five tools show up in the catalog.
 
 Full guide: [`docs/setup/claude-native.md`](docs/setup/claude-native.md).
 
@@ -137,7 +139,7 @@ The indexer walks the workspace with `golang.org/x/tools/go/packages`,
 extracts every symbol + call-graph edge, and persists it to SQLite via
 sqlc-typed queries. It is workspace-aware: a `go.work` monorepo is indexed
 across all of its modules, not just the root. `agent_go-souschef mcp` builds
-the index on startup and serves it as four MCP tools — the LLM calls them
+the index on startup and serves it as five MCP tools — the LLM calls them
 instead of reading raw files.
 
 Architecture: see [`AGENTS.md`](AGENTS.md) for layout and

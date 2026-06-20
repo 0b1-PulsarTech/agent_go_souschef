@@ -9,9 +9,9 @@ Entry point for human contributors **and** AI agents working on this repository.
 `agent_go_souschef` is a single-binary CLI that builds a semantic symbol index
 for Go repositories and exposes it to LLMs as a Model Context Protocol server.
 
-- **MCP server** (`agent_go-souschef mcp`) — stdio MCP, four tools:
-  `souschef_sync`, `souschef_query`, `souschef_source`, `souschef_changed`.
-  Used by Claude Code, Codex, Cursor, or any MCP host.
+- **MCP server** (`agent_go-souschef mcp`) — stdio MCP, five tools:
+  `souschef_sync`, `souschef_query`, `souschef_source`, `souschef_changed`,
+  `souschef_shadows`. Used by Claude Code, Codex, Cursor, or any MCP host.
 
 The indexer is workspace-aware: a `go.work` monorepo is indexed across all of
 its modules in one pass, and a repo with nested modules (a `database/entschema`
