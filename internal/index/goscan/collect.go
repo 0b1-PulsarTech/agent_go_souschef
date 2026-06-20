@@ -32,6 +32,7 @@ func (b *snapshotBuilder) addPackages(pkgs []*packages.Package) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -41,14 +42,17 @@ func (b *snapshotBuilder) addPackage(pkg *packages.Package) error {
 			return fmt.Errorf("add file: %w", err)
 		}
 	}
+
 	return nil
 }
 
 func rel(root string, fset *token.FileSet, pos token.Pos) string {
 	path := fset.Position(pos).Filename
+
 	result, err := filepath.Rel(root, path)
 	if err != nil {
 		return path
 	}
+
 	return result
 }

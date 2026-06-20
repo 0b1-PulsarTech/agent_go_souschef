@@ -11,5 +11,11 @@ func (svc Service) Source(ctx context.Context, query string) (string, error) {
 	if query == "" {
 		return "", fmt.Errorf("query is required")
 	}
-	return svc.indexer.Source(ctx, query)
+
+	src, err := svc.indexer.Source(ctx, query)
+	if err != nil {
+		return "", fmt.Errorf("source %q: %w", query, err)
+	}
+
+	return src, nil
 }

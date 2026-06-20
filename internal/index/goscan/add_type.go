@@ -19,15 +19,19 @@ func (b *snapshotBuilder) addType(
 	if obj == nil {
 		return
 	}
+
 	id := b.register(obj, repomodel.Symbol{
 		Name: spec.Name.Name, Kind: symbols.Kind(spec), Package: pkg.PkgPath, File: path,
 		Signature: types.ObjectString(obj, symbols.ShortPkg),
 	})
+
 	sum.Exports = append(sum.Exports, spec.Name.Name)
+
 	iface, ok := spec.Type.(*ast.InterfaceType)
 	if !ok {
 		return
 	}
+
 	for _, field := range iface.Methods.List {
 		for _, name := range field.Names {
 			b.snapshot.Methods = append(b.snapshot.Methods, symbols.MethodRecord(id, name.Name))

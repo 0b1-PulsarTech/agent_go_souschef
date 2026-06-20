@@ -14,6 +14,7 @@ import (
 // declaration is first visited.
 func (b *snapshotBuilder) addTypeRefs() {
 	seen := map[[2]int64]struct{}{}
+
 	for _, pkg := range b.pkgs {
 		for _, file := range pkg.Syntax {
 			for _, decl := range file.Decls {
@@ -55,20 +56,25 @@ func (b *snapshotBuilder) refsFromNode(
 	if fromID == 0 {
 		return
 	}
+
 	ast.Inspect(node, func(n ast.Node) bool {
 		ident, ok := n.(*ast.Ident)
 		if !ok {
 			return true
 		}
+
 		target := graph.ReferencedType(pkg, ident)
 		if target == nil {
 			return true
 		}
+
 		toID := b.ids[target]
 		if toID == 0 {
 			toID = b.names[graph.FullName(target)]
 		}
+
 		b.addTypeRef(fromID, toID, seen)
+
 		return true
 	})
 }
@@ -77,10 +83,13 @@ func (b *snapshotBuilder) addTypeRef(fromID, toID int64, seen map[[2]int64]struc
 	if toID == 0 || toID == fromID {
 		return
 	}
+
 	key := [2]int64{fromID, toID}
 	if _, dup := seen[key]; dup {
 		return
 	}
+
 	seen[key] = struct{}{}
+
 	b.snapshot.TypeRefs = append(b.snapshot.TypeRefs, graph.TypeRefRelation(fromID, toID))
 }

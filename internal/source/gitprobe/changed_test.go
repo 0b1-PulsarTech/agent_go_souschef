@@ -4,6 +4,7 @@ import "testing"
 
 func TestRender(t *testing.T) {
 	t.Parallel()
+
 	cases := []struct {
 		name, scope string
 		files       []string
@@ -17,6 +18,7 @@ func TestRender(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			if got := render(tc.scope, tc.files); got != tc.want {
 				t.Fatalf("got %q want %q", got, tc.want)
 			}

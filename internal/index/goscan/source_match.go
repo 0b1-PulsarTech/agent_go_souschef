@@ -8,9 +8,14 @@ import (
 	"github.com/0b1-PulsarTech/agent_go_souschef/internal/index/goscan/symbols"
 )
 
+// nameParts is how many segments a "Type.Method" query splits into: a receiver
+// and a method name.
+const nameParts = 2
+
 func formatDecl(fset *token.FileSet, decl ast.Decl, query string) string {
-	parts := strings.SplitN(query, ".", 2)
-	forMethod := len(parts) == 2
+	parts := strings.SplitN(query, ".", nameParts)
+	forMethod := len(parts) == nameParts
+
 	switch typed := decl.(type) {
 	case *ast.FuncDecl:
 		if matchesFunc(typed, parts, forMethod) {
@@ -21,6 +26,7 @@ func formatDecl(fset *token.FileSet, decl ast.Decl, query string) string {
 			return nodeText(fset, typed)
 		}
 	}
+
 	return ""
 }
 
@@ -28,6 +34,7 @@ func matchesFunc(decl *ast.FuncDecl, parts []string, forMethod bool) bool {
 	if !forMethod {
 		return decl.Name.Name == parts[0]
 	}
+
 	return decl.Recv != nil && decl.Name.Name == parts[1] && symbols.RecvName(decl) == parts[0]
 }
 
@@ -38,5 +45,6 @@ func matchesType(decl *ast.GenDecl, query string) bool {
 			return true
 		}
 	}
+
 	return false
 }

@@ -19,16 +19,21 @@ func (b *snapshotBuilder) addFunc(
 	if obj == nil {
 		return
 	}
+
 	name := decl.Name.Name
 	kind := "function"
+
 	if decl.Recv != nil {
 		name = symbols.RecvName(decl) + "." + name
 		kind = "method"
 	}
+
 	id := b.register(obj, repomodel.Symbol{
 		Name: name, Kind: kind, Package: pkg.PkgPath, File: path,
 		Signature: types.ObjectString(obj, symbols.ShortPkg),
 	})
+
 	sum.Exports = append(sum.Exports, name)
+
 	ast.Inspect(decl, func(node ast.Node) bool { return b.addCall(pkg, node, obj, id) })
 }

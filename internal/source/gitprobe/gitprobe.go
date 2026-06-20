@@ -25,8 +25,10 @@ func New(root string) *Probe {
 			// Surface unexpected errors via Probe state — Changed will report them.
 			return &Probe{root: root}
 		}
+
 		return &Probe{root: root}
 	}
+
 	return &Probe{root: root, repo: repo}
 }
 
@@ -36,5 +38,6 @@ func (p *Probe) repoOrErr() (*git.Repository, error) {
 	if p.repo == nil {
 		return nil, fmt.Errorf("%s is not a git repository", p.root)
 	}
+
 	return p.repo, nil
 }

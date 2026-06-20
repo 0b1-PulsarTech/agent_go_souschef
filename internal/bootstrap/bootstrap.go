@@ -64,6 +64,8 @@ func indexPath(root string) string {
 	if err != nil {
 		abs = root
 	}
+
 	sum := sha256.Sum256([]byte(abs))
+
 	return filepath.Join(os.TempDir(), "agent_go_souschef", hex.EncodeToString(sum[:8]), "index.db")
 }

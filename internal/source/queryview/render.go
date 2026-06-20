@@ -10,7 +10,9 @@ func Render(hit repomodel.QueryHit, expanded bool) string {
 	if hit.Symbol.Name == "" {
 		return renderText(hit.TextHits)
 	}
+
 	var b strings.Builder
+
 	line(&b, "Symbol: ", hit.Symbol.Name)
 	line(&b, "Kind: ", title(hit.Symbol.Kind))
 	section(&b, "Methods", hit.Methods)
@@ -19,10 +21,13 @@ func Render(hit repomodel.QueryHit, expanded bool) string {
 	section(&b, "Referenced by", hit.Callers)
 	section(&b, "Used as type by", hit.UsedBy)
 	section(&b, "Uses types", hit.UsesTypes)
+
 	if expanded && hit.Symbol.Signature != "" {
 		line(&b, "Signature: ", hit.Symbol.Signature)
 	}
+
 	line(&b, "Defined: ", hit.Symbol.File)
+
 	return strings.TrimSpace(b.String())
 }
 
@@ -30,5 +35,6 @@ func title(text string) string {
 	if text == "" {
 		return text
 	}
+
 	return strings.ToUpper(text[:1]) + text[1:]
 }

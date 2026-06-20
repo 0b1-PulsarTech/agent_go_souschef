@@ -9,6 +9,7 @@ import (
 
 func TestRenderText(t *testing.T) {
 	t.Parallel()
+
 	text := renderText([]repomodel.TextHit{{Path: "a.go", Snippet: "CreateUser"}})
 	if !strings.Contains(text, "a.go") {
 		t.Fatalf("got %q", text)

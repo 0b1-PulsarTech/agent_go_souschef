@@ -36,6 +36,7 @@ func RecvName(decl *ast.FuncDecl) string {
 	if decl.Recv == nil || len(decl.Recv.List) == 0 {
 		return ""
 	}
+
 	return baseTypeName(decl.Recv.List[0].Type)
 }
 

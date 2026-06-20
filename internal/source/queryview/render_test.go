@@ -9,6 +9,7 @@ import (
 
 func TestRender(t *testing.T) {
 	t.Parallel()
+
 	text := Render(
 		repomodel.QueryHit{
 			Symbol: repomodel.Symbol{Name: "CreateUser", Kind: "function", File: "user.go"},
@@ -22,6 +23,7 @@ func TestRender(t *testing.T) {
 
 func TestRenderTypeRefSections(t *testing.T) {
 	t.Parallel()
+
 	text := Render(
 		repomodel.QueryHit{
 			Symbol:    repomodel.Symbol{Name: "Repository", Kind: "interface", File: "service.go"},
@@ -33,6 +35,7 @@ func TestRenderTypeRefSections(t *testing.T) {
 	if !strings.Contains(text, "Used as type by:") || !strings.Contains(text, "CreateUser") {
 		t.Errorf("missing incoming type-ref section: %q", text)
 	}
+
 	if !strings.Contains(text, "Uses types:") || !strings.Contains(text, "User") {
 		t.Errorf("missing outgoing type-ref section: %q", text)
 	}

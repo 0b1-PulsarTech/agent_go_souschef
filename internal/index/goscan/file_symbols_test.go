@@ -8,6 +8,7 @@ import (
 
 func TestFileSummaryText(t *testing.T) {
 	t.Parallel()
+
 	txt := symbols.FileSummary{Pkg: "sample/user", Exports: []string{"CreateUser"}}.Text()
 	if txt == "" {
 		t.Fatal("expected summary")

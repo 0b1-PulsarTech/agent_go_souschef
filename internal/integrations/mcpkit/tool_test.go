@@ -11,7 +11,9 @@ import (
 // smoke under pkg/repocontext/mcptools_test.go.
 func TestTool_RegistersWithoutPanic(t *testing.T) {
 	t.Parallel()
+
 	type In struct{ Q string }
+
 	type Out struct{ Answer string }
 
 	s := New("test", "0.0.0")

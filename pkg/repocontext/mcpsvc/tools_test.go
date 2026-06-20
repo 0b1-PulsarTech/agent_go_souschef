@@ -12,6 +12,7 @@ import (
 // closures are only registered here, never invoked.
 func TestRegisterMCP_NoPanic(t *testing.T) {
 	t.Parallel()
+
 	server := mcpkit.New("test", "0.0.0")
 	RegisterMCP(server, repocontext.Service{})
 }

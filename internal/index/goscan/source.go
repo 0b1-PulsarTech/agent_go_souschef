@@ -19,23 +19,30 @@ func (idx Indexer) Source(_ context.Context, query string) (string, error) {
 		if walkErr != nil || entry.IsDir() || filepath.Ext(path) != ".go" {
 			return walkErr
 		}
+
 		file, parseErr := parser.ParseFile(fset, path, nil, parser.ParseComments)
 		if parseErr != nil {
-			return parseErr
+			return fmt.Errorf("parse %s: %w", path, parseErr)
 		}
+
 		if src := matchDecl(fset, file, query); src != "" {
 			return stopSource(src)
 		}
+
 		return nil
 	})
+
 	var stop *sourceFound
+
 	if err == nil {
 		return "", fmt.Errorf("symbol source not found")
 	}
+
 	if ok := errorAsSource(err, &stop); ok {
 		return stop.text, nil
 	}
-	return "", err
+
+	return "", fmt.Errorf("scan sources: %w", err)
 }
 
 func matchDecl(fset *token.FileSet, file *ast.File, query string) string {
@@ -44,12 +51,14 @@ func matchDecl(fset *token.FileSet, file *ast.File, query string) string {
 			return out
 		}
 	}
+
 	return ""
 }
 
 func nodeText(fset *token.FileSet, node ast.Node) string {
 	var buf bytes.Buffer
 	_ = format.Node(&buf, fset, node)
+
 	return strings.TrimSpace(buf.String())
 }
 
@@ -64,5 +73,6 @@ func errorAsSource(err error, target **sourceFound) bool {
 	if ok {
 		*target = found
 	}
+
 	return ok
 }

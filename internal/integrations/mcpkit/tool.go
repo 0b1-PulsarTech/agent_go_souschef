@@ -22,6 +22,7 @@ func Tool[In, Out any](s *Server, name, description string, handle Handler[In, O
 	mcp.AddTool(s.impl, &mcp.Tool{Name: name, Description: description},
 		func(ctx context.Context, _ *mcp.CallToolRequest, in In) (*mcp.CallToolResult, Out, error) {
 			out, err := handle(ctx, in)
+
 			return nil, out, err
 		})
 }

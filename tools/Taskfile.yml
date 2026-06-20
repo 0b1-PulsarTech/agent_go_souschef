@@ -28,13 +28,15 @@ tasks:
 
   run:checks:
     desc: Run golangci-lint checks on the entire project
+    dir: "{{.REPO_ROOT}}"
     cmds:
-      - golangci-lint run --config {{.GOLANGCI_CONFIG}} {{.REPO_ROOT}}/...
+      - golangci-lint run --config {{.GOLANGCI_CONFIG}} ./...
 
   run:fixes:
     desc: Apply golangci-lint autofixes on the entire project
+    dir: "{{.REPO_ROOT}}"
     cmds:
-      - golangci-lint run --fix --config {{.GOLANGCI_CONFIG}} {{.REPO_ROOT}}/...
+      - golangci-lint run --fix --config {{.GOLANGCI_CONFIG}} ./...
 
   gen:code:
     desc: Generate all needed code for the project to run

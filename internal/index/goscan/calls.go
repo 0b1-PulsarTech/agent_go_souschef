@@ -19,19 +19,23 @@ func (b *snapshotBuilder) addCall(
 	if !ok || node == nil {
 		return true
 	}
+
 	target := graph.CalledObject(pkg, call)
 	if target == nil {
 		return true
 	}
+
 	toID := b.ids[target]
 	if toID == 0 {
 		toID = b.names[graph.FullName(target)]
 	}
+
 	if toID != 0 && target != from {
 		b.snapshot.Calls = append(
 			b.snapshot.Calls,
 			repomodel.Relation{FromID: fromID, ToID: toID, Kind: "call"},
 		)
 	}
+
 	return true
 }

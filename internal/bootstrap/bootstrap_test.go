@@ -24,12 +24,15 @@ func TestDoInjections_ResolvesEveryType(t *testing.T) {
 	if _, err := remy.Get[*reposqlite.Store](inj); err != nil {
 		t.Fatalf("store: %v", err)
 	}
+
 	if _, err := remy.Get[goscan.Indexer](inj); err != nil {
 		t.Fatalf("indexer: %v", err)
 	}
+
 	if _, err := remy.Get[*gitprobe.Probe](inj); err != nil {
 		t.Fatalf("probe: %v", err)
 	}
+
 	if _, err := remy.Get[repocontext.Service](inj); err != nil {
 		t.Fatalf("service: %v", err)
 	}

@@ -12,7 +12,9 @@ import (
 // CreateUser takes Repository, Publisher, and User as parameters.
 func TestTypeRefs(t *testing.T) {
 	t.Parallel()
+
 	idx := New(filepath.Join("..", "..", "..", "test", "fixtures", "sample"))
+
 	snap, err := idx.Build(context.Background())
 	if err != nil {
 		t.Fatalf("build: %v", err)
@@ -24,13 +26,16 @@ func TestTypeRefs(t *testing.T) {
 	}
 
 	refs := map[string]bool{}
+
 	for _, rel := range snap.TypeRefs {
 		if rel.Kind != "ref" {
 			t.Errorf("type ref with unexpected kind %q", rel.Kind)
 		}
+
 		if rel.FromID == rel.ToID {
 			t.Errorf("self type ref on %q", name[rel.FromID])
 		}
+
 		refs[name[rel.FromID]+"->"+name[rel.ToID]] = true
 	}
 

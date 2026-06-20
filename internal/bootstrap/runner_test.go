@@ -18,6 +18,7 @@ func TestRunSync_WritesSummary(t *testing.T) {
 	if err := RunSync(context.Background(), inj, &buf); err != nil {
 		t.Fatalf("run sync: %v", err)
 	}
+
 	if buf.Len() == 0 {
 		t.Fatal("expected non-empty summary")
 	}

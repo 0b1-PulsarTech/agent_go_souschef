@@ -8,6 +8,7 @@ import (
 
 func TestFullNameNil(t *testing.T) {
 	t.Parallel()
+
 	if got := FullName(nil); got != "" {
 		t.Fatalf("got %q", got)
 	}
@@ -24,6 +25,7 @@ func TestFullNameNoPkg(t *testing.T) {
 
 func TestCalledObjectNilPkg(t *testing.T) {
 	t.Parallel()
+
 	if got := CalledObject(nil, &ast.CallExpr{}); got != nil {
 		t.Fatal("expected nil for nil pkg")
 	}
@@ -31,6 +33,7 @@ func TestCalledObjectNilPkg(t *testing.T) {
 
 func TestImplementRelation(t *testing.T) {
 	t.Parallel()
+
 	r := ImplementRelation(1, 2)
 	if r.FromID != 1 || r.ToID != 2 || r.Kind != "implement" {
 		t.Fatalf("unexpected %+v", r)

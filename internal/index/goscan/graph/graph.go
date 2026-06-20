@@ -14,16 +14,20 @@ func CalledObject(pkg *packages.Package, call *ast.CallExpr) types.Object {
 	if pkg == nil {
 		return nil
 	}
+
 	if ident, ok := call.Fun.(*ast.Ident); ok {
 		return pkg.TypesInfo.Uses[ident]
 	}
+
 	sel, ok := call.Fun.(*ast.SelectorExpr)
 	if !ok {
 		return nil
 	}
+
 	if picked := pkg.TypesInfo.Selections[sel]; picked != nil {
 		return picked.Obj()
 	}
+
 	return pkg.TypesInfo.Uses[sel.Sel]
 }
 
@@ -46,7 +50,9 @@ func ReferencedType(pkg *packages.Package, ident *ast.Ident) *types.TypeName {
 	if pkg == nil {
 		return nil
 	}
+
 	name, _ := pkg.TypesInfo.Uses[ident].(*types.TypeName)
+
 	return name
 }
 
@@ -56,5 +62,6 @@ func FullName(obj types.Object) string {
 	if obj == nil || obj.Pkg() == nil {
 		return ""
 	}
+
 	return obj.Pkg().Path() + "." + obj.Name()
 }

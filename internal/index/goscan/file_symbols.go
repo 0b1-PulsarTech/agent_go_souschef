@@ -3,6 +3,7 @@ package goscan
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"go/ast"
 	"go/types"
 	"os"
@@ -16,17 +17,21 @@ import (
 func (b *snapshotBuilder) addFile(pkg *packages.Package, file *ast.File) error {
 	path := rel(b.root, pkg.Fset, file.Pos())
 	summary := symbols.FileSummary{Path: path, Pkg: pkg.PkgPath}
+
 	for _, decl := range file.Decls {
 		b.addDecl(pkg, path, decl, &summary)
 	}
+
 	content, err := os.ReadFile(pkg.Fset.Position(file.Pos()).Filename)
 	if err != nil {
-		return err
+		return fmt.Errorf("read %s: %w", path, err)
 	}
+
 	sum := sha256.Sum256(content)
 	b.snapshot.Files = append(b.snapshot.Files, repomodel.FileSummary{
 		Path: path, Lang: "go", Hash: hex.EncodeToString(sum[:]), Summary: summary.Text(),
 	})
+
 	return nil
 }
 
@@ -36,5 +41,6 @@ func (b *snapshotBuilder) register(obj types.Object, symbol repomodel.Symbol) in
 	b.snapshot.Symbols = append(b.snapshot.Symbols, symbol)
 	b.ids[obj] = symbol.ID
 	b.names[graph.FullName(obj)] = symbol.ID
+
 	return symbol.ID
 }

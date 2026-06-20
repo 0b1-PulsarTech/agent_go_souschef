@@ -7,6 +7,7 @@ package mcpkit
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -28,5 +29,9 @@ func New(name, version string) *Server {
 // Run blocks until the MCP client disconnects, using stdio as the transport.
 // Cancellation through ctx unwinds the SDK's read loop cleanly.
 func (s *Server) Run(ctx context.Context) error {
-	return s.impl.Run(ctx, &mcp.StdioTransport{})
+	if err := s.impl.Run(ctx, &mcp.StdioTransport{}); err != nil {
+		return fmt.Errorf("run stdio server: %w", err)
+	}
+
+	return nil
 }

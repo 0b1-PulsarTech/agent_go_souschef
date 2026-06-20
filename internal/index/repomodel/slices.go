@@ -8,16 +8,19 @@ func Map[A, B any](in []A, fn func(A) B) []B {
 	for i, v := range in {
 		out[i] = fn(v)
 	}
+
 	return out
 }
 
 // Filter returns the elements for which keep returns true.
 func Filter[A any](in []A, keep func(A) bool) []A {
 	out := make([]A, 0, len(in))
+
 	for _, v := range in {
 		if keep(v) {
 			out = append(out, v)
 		}
 	}
+
 	return out
 }
