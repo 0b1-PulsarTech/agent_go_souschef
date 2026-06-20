@@ -17,20 +17,28 @@ func (idx Indexer) Build(ctx context.Context) (repomodel.Snapshot, error) {
 	if err != nil {
 		return repomodel.Snapshot{}, fmt.Errorf("discover modules: %w", err)
 	}
+
 	builder := newBuilder(idx.root)
+
 	for _, plan := range plans {
 		cfg := &packages.Config{Context: ctx, Dir: plan.dir, Mode: pkgMode()}
+
 		pkgs, loadErr := packages.Load(cfg, plan.patterns...)
 		if loadErr != nil {
 			slog.Warn("skip module", "dir", plan.dir, "err", loadErr)
+
 			continue
 		}
+
 		if err = builder.addPackages(pkgs); err != nil {
 			return repomodel.Snapshot{}, err
 		}
 	}
+
 	builder.addImplementations()
 	builder.addTypeRefs()
+	builder.addShadows()
+
 	return builder.snapshot, nil
 }
 

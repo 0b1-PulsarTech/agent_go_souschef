@@ -22,6 +22,21 @@ type Snapshot struct {
 	Implementations []Relation
 	TypeRefs        []Relation
 	Methods         []Method
+	Shadows         []Shadow
+}
+
+// Shadow is one declaration that hides an identifier visible in an enclosing
+// scope. Origin classifies what was hidden: "builtin" (a predeclared name such
+// as len/error/string), "import" (an imported package name), "package" (a
+// package-level symbol), or "outer" (a variable or parameter from an enclosing
+// function or block). Detail says where the hidden identifier comes from.
+type Shadow struct {
+	File   string
+	Line   int
+	Column int
+	Name   string
+	Origin string
+	Detail string
 }
 
 type FileSummary struct {
