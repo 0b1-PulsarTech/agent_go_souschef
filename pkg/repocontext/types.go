@@ -10,4 +10,5 @@ type (
 	Method      = repomodel.Method
 	TextHit     = repomodel.TextHit
 	QueryHit    = repomodel.QueryHit
+	Shadow      = repomodel.Shadow
 )

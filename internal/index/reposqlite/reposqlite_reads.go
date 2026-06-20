@@ -16,11 +16,14 @@ func (s *Store) Lookup(ctx context.Context, query string) ([]repomodel.Symbol, e
 	if err != nil {
 		return nil, fmt.Errorf("list symbols: %w", err)
 	}
+
 	find := strings.ToLower(query)
 	matches := repomodel.Filter(rows, func(r db.Symbol) bool {
 		name := strings.ToLower(r.Name)
+
 		return name == find || strings.Contains(name, find) || strings.HasSuffix(name, "."+find)
 	})
+
 	return repomodel.Map(matches, toSymbol), nil
 }
 
@@ -29,6 +32,7 @@ func (s *Store) Calls(ctx context.Context, id int64) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("calls: %w", err)
 	}
+
 	return out, nil
 }
 
@@ -37,6 +41,7 @@ func (s *Store) Callers(ctx context.Context, id int64) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("callers: %w", err)
 	}
+
 	return out, nil
 }
 
@@ -45,6 +50,7 @@ func (s *Store) Implementations(ctx context.Context, id int64) ([]string, error)
 	if err != nil {
 		return nil, fmt.Errorf("implementations: %w", err)
 	}
+
 	return out, nil
 }
 
@@ -53,6 +59,7 @@ func (s *Store) References(ctx context.Context, id int64) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("references: %w", err)
 	}
+
 	return out, nil
 }
 
@@ -61,6 +68,7 @@ func (s *Store) TypeUses(ctx context.Context, id int64) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("type uses: %w", err)
 	}
+
 	return out, nil
 }
 
@@ -69,5 +77,22 @@ func (s *Store) Methods(ctx context.Context, id int64) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("methods: %w", err)
 	}
+
 	return out, nil
+}
+
+// Shadows returns every recorded shadowing finding, optionally narrowed to
+// files whose path contains scope (case-insensitive substring, like Changed).
+func (s *Store) Shadows(ctx context.Context, scope string) ([]repomodel.Shadow, error) {
+	rows, err := s.q.ListShadows(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list shadows: %w", err)
+	}
+
+	needle := strings.ToLower(scope)
+	matches := repomodel.Filter(rows, func(r db.ListShadowsRow) bool {
+		return needle == "" || strings.Contains(strings.ToLower(r.File), needle)
+	})
+
+	return repomodel.Map(matches, toShadow), nil
 }

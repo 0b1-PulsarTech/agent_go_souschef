@@ -14,6 +14,9 @@ type (
 	ChangedIn struct {
 		Scope string `json:"scope,omitempty" jsonschema:"Optional path filter"`
 	}
+	ShadowsIn struct {
+		Scope string `json:"scope,omitempty" jsonschema:"Optional path filter to narrow findings"`
+	}
 	Result struct {
 		Text string `json:"text" jsonschema:"Compact human/LLM-readable result"`
 	}

@@ -32,3 +32,15 @@ CREATE TABLE IF NOT EXISTS files (
     hash    TEXT NOT NULL DEFAULT '',
     summary TEXT NOT NULL DEFAULT ''
 );
+
+CREATE TABLE IF NOT EXISTS shadows (
+    id     INTEGER PRIMARY KEY,
+    file   TEXT NOT NULL DEFAULT '',
+    line   INTEGER NOT NULL DEFAULT 0,
+    col    INTEGER NOT NULL DEFAULT 0,
+    name   TEXT NOT NULL DEFAULT '',
+    origin TEXT NOT NULL DEFAULT '',
+    detail TEXT NOT NULL DEFAULT ''
+);
+
+CREATE INDEX IF NOT EXISTS idx_shadows_file ON shadows(file);

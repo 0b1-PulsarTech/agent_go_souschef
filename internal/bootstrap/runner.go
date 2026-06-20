@@ -31,10 +31,13 @@ func RunMCP(ctx context.Context, inj remy.Injector, cfg Config) error {
 
 	server := mcpkit.New("agent_go_souschef", cfg.Version)
 	mcpsvc.RegisterMCP(server, svc)
+
 	if err := server.Run(ctx); err != nil {
 		slog.Error("mcp server", "err", err)
-		return err
+
+		return fmt.Errorf("run mcp server: %w", err)
 	}
+
 	return nil
 }
 
@@ -46,12 +49,39 @@ func RunSync(ctx context.Context, inj remy.Injector, out io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("resolve service: %w", err)
 	}
+
 	summary, err := svc.Sync(ctx)
 	if err != nil {
 		return fmt.Errorf("sync: %w", err)
 	}
+
 	if _, err := fmt.Fprintln(out, summary); err != nil {
-		return err
+		return fmt.Errorf("write summary: %w", err)
 	}
+
+	return nil
+}
+
+// RunShadows builds the index (so the report reflects the current tree) and
+// prints every shadowing finding, optionally narrowed to scope.
+func RunShadows(ctx context.Context, inj remy.Injector, out io.Writer, scope string) error {
+	svc, err := remy.Get[repocontext.Service](inj)
+	if err != nil {
+		return fmt.Errorf("resolve service: %w", err)
+	}
+
+	if _, err := svc.Sync(ctx); err != nil {
+		return fmt.Errorf("sync: %w", err)
+	}
+
+	report, err := svc.Shadows(ctx, scope)
+	if err != nil {
+		return fmt.Errorf("shadows: %w", err)
+	}
+
+	if _, err := fmt.Fprintln(out, report); err != nil {
+		return fmt.Errorf("write report: %w", err)
+	}
+
 	return nil
 }

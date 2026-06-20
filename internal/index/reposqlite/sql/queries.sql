@@ -14,6 +14,10 @@ VALUES (?, ?, ?, ?);
 INSERT INTO files (path, lang, hash, summary)
 VALUES (?, ?, ?, ?);
 
+-- name: InsertShadow :exec
+INSERT INTO shadows (file, line, col, name, origin, detail)
+VALUES (?, ?, ?, ?, ?, ?);
+
 -- name: DeleteAllSymbols :exec
 DELETE FROM symbols;
 
@@ -25,6 +29,9 @@ DELETE FROM methods;
 
 -- name: DeleteAllFiles :exec
 DELETE FROM files;
+
+-- name: DeleteAllShadows :exec
+DELETE FROM shadows;
 
 -- name: ListSymbols :many
 SELECT id, name, kind, package, file, signature
@@ -71,3 +78,8 @@ SELECT name
 FROM methods
 WHERE parent_id = ?
 ORDER BY name;
+
+-- name: ListShadows :many
+SELECT file, line, col, name, origin, detail
+FROM shadows
+ORDER BY file, line, col;

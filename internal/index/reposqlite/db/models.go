@@ -27,6 +27,16 @@ type Relation struct {
 	EdgeKind string
 }
 
+type Shadow struct {
+	ID     int64
+	File   string
+	Line   int64
+	Col    int64
+	Name   string
+	Origin string
+	Detail string
+}
+
 type Symbol struct {
 	ID        int64
 	Name      string

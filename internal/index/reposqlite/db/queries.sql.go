@@ -36,6 +36,15 @@ func (q *Queries) DeleteAllRelations(ctx context.Context) error {
 	return err
 }
 
+const deleteAllShadows = `-- name: DeleteAllShadows :exec
+DELETE FROM shadows
+`
+
+func (q *Queries) DeleteAllShadows(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAllShadows)
+	return err
+}
+
 const deleteAllSymbols = `-- name: DeleteAllSymbols :exec
 DELETE FROM symbols
 `
@@ -290,6 +299,32 @@ func (q *Queries) InsertRelation(ctx context.Context, arg InsertRelationParams) 
 	return err
 }
 
+const insertShadow = `-- name: InsertShadow :exec
+INSERT INTO shadows (file, line, col, name, origin, detail)
+VALUES (?, ?, ?, ?, ?, ?)
+`
+
+type InsertShadowParams struct {
+	File   string
+	Line   int64
+	Col    int64
+	Name   string
+	Origin string
+	Detail string
+}
+
+func (q *Queries) InsertShadow(ctx context.Context, arg InsertShadowParams) error {
+	_, err := q.db.ExecContext(ctx, insertShadow,
+		arg.File,
+		arg.Line,
+		arg.Col,
+		arg.Name,
+		arg.Origin,
+		arg.Detail,
+	)
+	return err
+}
+
 const insertSymbol = `-- name: InsertSymbol :exec
 INSERT INTO symbols (id, name, kind, package, file, signature)
 VALUES (?, ?, ?, ?, ?, ?)
@@ -314,6 +349,51 @@ func (q *Queries) InsertSymbol(ctx context.Context, arg InsertSymbolParams) erro
 		arg.Signature,
 	)
 	return err
+}
+
+const listShadows = `-- name: ListShadows :many
+SELECT file, line, col, name, origin, detail
+FROM shadows
+ORDER BY file, line, col
+`
+
+type ListShadowsRow struct {
+	File   string
+	Line   int64
+	Col    int64
+	Name   string
+	Origin string
+	Detail string
+}
+
+func (q *Queries) ListShadows(ctx context.Context) ([]ListShadowsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listShadows)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListShadowsRow
+	for rows.Next() {
+		var i ListShadowsRow
+		if err := rows.Scan(
+			&i.File,
+			&i.Line,
+			&i.Col,
+			&i.Name,
+			&i.Origin,
+			&i.Detail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listSymbols = `-- name: ListSymbols :many

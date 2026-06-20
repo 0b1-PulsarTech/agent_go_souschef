@@ -19,11 +19,13 @@ func (s *Store) Reset(ctx context.Context) error {
 		{"methods", s.q.DeleteAllMethods},
 		{"symbols", s.q.DeleteAllSymbols},
 		{"files", s.q.DeleteAllFiles},
+		{"shadows", s.q.DeleteAllShadows},
 	} {
 		if err := op.fn(ctx); err != nil {
 			return fmt.Errorf("reset %s: %w", op.name, err)
 		}
 	}
+
 	return nil
 }
 
@@ -33,16 +35,23 @@ func (s *Store) Write(ctx context.Context, snap repomodel.Snapshot) error {
 	if err := s.insertSymbols(ctx, snap.Symbols); err != nil {
 		return err
 	}
+
 	if err := s.insertRelations(
 		ctx,
 		slices.Concat(snap.Calls, snap.Implementations, snap.TypeRefs),
 	); err != nil {
 		return err
 	}
+
 	if err := s.insertFiles(ctx, snap.Files); err != nil {
 		return err
 	}
-	return s.insertMethods(ctx, snap.Methods)
+
+	if err := s.insertMethods(ctx, snap.Methods); err != nil {
+		return err
+	}
+
+	return s.insertShadows(ctx, snap.Shadows)
 }
 
 func (s *Store) insertSymbols(ctx context.Context, in []repomodel.Symbol) error {
@@ -54,6 +63,7 @@ func (s *Store) insertSymbols(ctx context.Context, in []repomodel.Symbol) error 
 			return fmt.Errorf("insert symbol %q: %w", sym.Name, err)
 		}
 	}
+
 	return nil
 }
 
@@ -65,6 +75,7 @@ func (s *Store) insertRelations(ctx context.Context, in []repomodel.Relation) er
 			return fmt.Errorf("insert relation %d→%d: %w", rel.FromID, rel.ToID, err)
 		}
 	}
+
 	return nil
 }
 
@@ -76,6 +87,7 @@ func (s *Store) insertFiles(ctx context.Context, in []repomodel.FileSummary) err
 			return fmt.Errorf("insert file %q: %w", f.Path, err)
 		}
 	}
+
 	return nil
 }
 
@@ -87,5 +99,19 @@ func (s *Store) insertMethods(ctx context.Context, in []repomodel.Method) error 
 			return fmt.Errorf("insert method %q: %w", m.Name, err)
 		}
 	}
+
+	return nil
+}
+
+func (s *Store) insertShadows(ctx context.Context, in []repomodel.Shadow) error {
+	for _, sh := range in {
+		if err := s.q.InsertShadow(ctx, db.InsertShadowParams{
+			File: sh.File, Line: int64(sh.Line), Col: int64(sh.Column),
+			Name: sh.Name, Origin: sh.Origin, Detail: sh.Detail,
+		}); err != nil {
+			return fmt.Errorf("insert shadow %q at %s:%d: %w", sh.Name, sh.File, sh.Line, err)
+		}
+	}
+
 	return nil
 }

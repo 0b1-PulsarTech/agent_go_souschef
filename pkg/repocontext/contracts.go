@@ -3,22 +3,23 @@ package repocontext
 import "context"
 
 type LanguageIndexer interface {
-	Build(context.Context) (Snapshot, error)
-	Source(context.Context, string) (string, error)
+	Build(ctx context.Context) (Snapshot, error)
+	Source(ctx context.Context, query string) (string, error)
 }
 
 type SymbolStore interface {
-	Reset(context.Context) error
-	Write(context.Context, Snapshot) error
-	Lookup(context.Context, string) ([]Symbol, error)
-	Calls(context.Context, int64) ([]string, error)
-	Callers(context.Context, int64) ([]string, error)
-	Implementations(context.Context, int64) ([]string, error)
-	References(context.Context, int64) ([]string, error)
-	TypeUses(context.Context, int64) ([]string, error)
-	Methods(context.Context, int64) ([]string, error)
+	Reset(ctx context.Context) error
+	Write(ctx context.Context, snap Snapshot) error
+	Lookup(ctx context.Context, query string) ([]Symbol, error)
+	Calls(ctx context.Context, id int64) ([]string, error)
+	Callers(ctx context.Context, id int64) ([]string, error)
+	Implementations(ctx context.Context, id int64) ([]string, error)
+	References(ctx context.Context, id int64) ([]string, error)
+	TypeUses(ctx context.Context, id int64) ([]string, error)
+	Methods(ctx context.Context, id int64) ([]string, error)
+	Shadows(ctx context.Context, scope string) ([]Shadow, error)
 }
 
 type ChangeReporter interface {
-	Changed(context.Context, string) (string, error)
+	Changed(ctx context.Context, scope string) (string, error)
 }
