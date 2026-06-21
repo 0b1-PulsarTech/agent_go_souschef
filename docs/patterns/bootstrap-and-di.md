@@ -67,12 +67,21 @@ interface structurally — no extra factory closures.
 
 ```go
 func RunMCP(ctx context.Context, inj remy.Injector, cfg Config) error {
-    svc, err := remy.Get[*repocontext.Service](inj)
+    svc, err := remy.Get[repocontext.Service](inj)
     if err != nil {
         return fmt.Errorf("resolve service: %w", err)
     }
+    // One SyncGate owns every sync: the startup refresh, the throttled refresh
+    // before each read tool, and the explicit souschef_sync. Force primes the
+    // index up-front; the failure is non-fatal so the server still starts.
+    gate := mcpsvc.NewSyncGate(svc, time.Now, mcpsvc.DefaultSyncInterval)
+    if summary, syncErr := gate.Force(ctx); syncErr != nil {
+        slog.Warn("initial sync failed", "err", syncErr)
+    } else {
+        slog.Info("initial sync", "result", summary)
+    }
     server := mcpkit.New("agent_go_souschef", cfg.Version)
-    repocontext.RegisterMCP(server, svc)
+    mcpsvc.RegisterMCP(server, svc, gate)
     return server.Run(ctx)
 }
 

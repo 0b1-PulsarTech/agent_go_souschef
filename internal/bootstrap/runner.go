@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"time"
 
 	"github.com/wrapped-owls/goremy-di/remy"
 
@@ -13,24 +14,28 @@ import (
 	"github.com/0b1-PulsarTech/agent_go_souschef/pkg/repocontext/mcpsvc"
 )
 
-// RunMCP resolves the Service from the injector, registers the four MCP tools
-// on a new mcpkit.Server, and blocks until the client disconnects.
+// RunMCP resolves the Service from the injector, registers the five MCP tools
+// on a new mcpkit.Server, and blocks until the client disconnects. One SyncGate
+// owns every sync: the startup refresh below, the throttled refresh before each
+// read tool, and the explicit souschef_sync.
 func RunMCP(ctx context.Context, inj remy.Injector, cfg Config) error {
 	svc, err := remy.Get[repocontext.Service](inj)
 	if err != nil {
 		return fmt.Errorf("resolve service: %w", err)
 	}
+
+	gate := mcpsvc.NewSyncGate(svc, time.Now, mcpsvc.DefaultSyncInterval)
 	// Build the index up-front so the first query has data to answer from.
 	// A failure here is non-fatal: the server still starts and the client can
 	// re-run souschef_sync once the workspace is fixed. We only log it.
-	if summary, syncErr := svc.Sync(ctx); syncErr != nil {
+	if summary, syncErr := gate.Force(ctx); syncErr != nil {
 		slog.Warn("initial sync failed", "err", syncErr)
 	} else {
 		slog.Info("initial sync", "result", summary)
 	}
 
 	server := mcpkit.New("agent_go_souschef", cfg.Version)
-	mcpsvc.RegisterMCP(server, svc)
+	mcpsvc.RegisterMCP(server, svc, gate)
 
 	if err := server.Run(ctx); err != nil {
 		slog.Error("mcp server", "err", err)

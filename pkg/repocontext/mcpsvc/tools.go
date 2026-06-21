@@ -11,12 +11,14 @@ import (
 )
 
 // RegisterMCP wires every Service operation as its own MCP tool on s, so the
-// LLM's catalog shows five entries picked by purpose.
-func RegisterMCP(s *mcpkit.Server, svc repocontext.Service) {
+// LLM's catalog shows five entries picked by purpose. gate keeps the index
+// fresh: read tools refresh through it (throttled), and souschef_sync forces a
+// refresh regardless of the throttle.
+func RegisterMCP(s *mcpkit.Server, svc repocontext.Service, gate *SyncGate) {
 	mcpkit.Tool(s, "souschef_sync",
 		"Build or refresh the symbol index for the current workspace.",
 		func(ctx context.Context, _ SyncIn) (Result, error) {
-			text, err := svc.Sync(ctx)
+			text, err := gate.Force(ctx)
 
 			return result("souschef_sync", text, err)
 		})
@@ -26,6 +28,7 @@ func RegisterMCP(s *mcpkit.Server, svc repocontext.Service) {
 		"souschef_query",
 		"Look up a symbol and return its direct callers/callees. Set expand=true for transitive deps.",
 		func(ctx context.Context, in QueryIn) (Result, error) {
+			gate.Ensure(ctx)
 			text, err := svc.Query(ctx, in.Query, in.Expand)
 
 			return result("souschef_query", text, err)
@@ -35,6 +38,7 @@ func RegisterMCP(s *mcpkit.Server, svc repocontext.Service) {
 	mcpkit.Tool(s, "souschef_source",
 		"Return the file path and source snippet for a named symbol.",
 		func(ctx context.Context, in SourceIn) (Result, error) {
+			gate.Ensure(ctx)
 			text, err := svc.Source(ctx, in.Query)
 
 			return result("souschef_source", text, err)
@@ -43,6 +47,7 @@ func RegisterMCP(s *mcpkit.Server, svc repocontext.Service) {
 	mcpkit.Tool(s, "souschef_changed",
 		"List files modified in the workspace, optionally filtered by path scope.",
 		func(ctx context.Context, in ChangedIn) (Result, error) {
+			gate.Ensure(ctx)
 			text, err := svc.Changed(ctx, in.Scope)
 
 			return result("souschef_changed", text, err)
@@ -53,6 +58,7 @@ func RegisterMCP(s *mcpkit.Server, svc repocontext.Service) {
 			"package-level symbol, or an outer variable. Use before naming locals "+
 			"to avoid hiding stdlib names or enclosing variables.",
 		func(ctx context.Context, in ShadowsIn) (Result, error) {
+			gate.Ensure(ctx)
 			text, err := svc.Shadows(ctx, in.Scope)
 
 			return result("souschef_shadows", text, err)
