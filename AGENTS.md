@@ -32,7 +32,7 @@ Installation and Claude Code setup: see [`README.md`](README.md).
 |---|---|
 | `cmd/agent_go-souschef/` | Binary entry point — parse args, build injector, dispatch. |
 | `internal/bootstrap/` | remy wiring (`DoInjections`) + per-subcommand runners (`RunMCP`, `RunSync`). |
-| `internal/index/goscan/` | Load Go packages, extract symbols + call graph (+ `symbols/` + `graph/` subpackages). |
+| `internal/index/goscan/` | Load Go packages, extract symbols + call graph (+ `symbols/`, `graph/`, `shadow/` subpackages; `shadow/` is a `go/analysis` Analyzer). |
 | `internal/index/repomodel/` | Shared domain types + generic `Map`/`Filter`. |
 | `internal/index/reposqlite/` | SQLite persistence (`reposqlite.go` + `_reads.go` + `_writes.go`); `sql/` is the sqlc source of truth; `db/` is generated. |
 | `internal/source/gitprobe/` | go-git/v5 based change detection. |

@@ -47,8 +47,12 @@ func (b *snapshotBuilder) addPackage(pkg *packages.Package) error {
 }
 
 func rel(root string, fset *token.FileSet, pos token.Pos) string {
-	path := fset.Position(pos).Filename
+	return relPath(root, fset.Position(pos).Filename)
+}
 
+// relPath makes an absolute source path repo-relative, falling back to the
+// original path when the two share no base.
+func relPath(root, path string) string {
 	result, err := filepath.Rel(root, path)
 	if err != nil {
 		return path

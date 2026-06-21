@@ -37,12 +37,19 @@ func (idx Indexer) Build(ctx context.Context) (repomodel.Snapshot, error) {
 
 	builder.addImplementations()
 	builder.addTypeRefs()
-	builder.addShadows()
+
+	if err = builder.addShadows(); err != nil {
+		return repomodel.Snapshot{}, err
+	}
 
 	return builder.snapshot, nil
 }
 
+// pkgMode is the load mode shared by every extractor. NeedTypesSizes is
+// required because the analysis driver behind the shadow pass rejects packages
+// whose TypesSizes is unset.
 func pkgMode() packages.LoadMode {
 	return packages.NeedName | packages.NeedFiles | packages.NeedCompiledGoFiles |
-		packages.NeedImports | packages.NeedSyntax | packages.NeedTypes | packages.NeedTypesInfo
+		packages.NeedImports | packages.NeedSyntax | packages.NeedTypes |
+		packages.NeedTypesSizes | packages.NeedTypesInfo
 }
